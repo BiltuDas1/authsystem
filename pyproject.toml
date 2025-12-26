@@ -1,0 +1,22 @@
+[project]
+name = "authsystem"
+version = "0.1.0"
+description = ""
+authors = [{ name = "Biswajit Das", email = "billionto@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "django (>=6.0,<7.0)",
+    "djangorestframework (>=3.16.1,<4.0.0)",
+    "markdown (>=3.10,<4.0)",
+    "django-filter (>=25.2,<26.0)",
+    "djangorestframework-simplejwt[crypto] (>=5.5.1,<6.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["python-dotenv (>=1.2.1,<2.0.0)"]
