@@ -37,8 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
     "authentication",
+    "rest_framework",
     "rest_framework_simplejwt.token_blacklist"
 ]
 
@@ -122,22 +122,23 @@ STATIC_URL = "static/"
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
-    "DEFAULT_AUTHENTICATION_CLASSES": {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    }
+    ]
 }
 
 from datetime import timedelta
-from dotenv import load_dotenv
-import os
-load_dotenv()
+from dotenv import dotenv_values
+config = dotenv_values(".env")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ALGORITHM": "EdDSA",
-    "SIGNING_KEY": os.getenv("JWT_SECRET_KEY"),
-    "VERIFYING_KEY": os.getenv("JWT_PUBLIC_KEY"),
+    "SIGNING_KEY": config.get("JWT_SECRET_KEY"),
+    "VERIFYING_KEY": config.get("JWT_PUBLIC_KEY"),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True
 }
+
+AUTH_USER_MODEL = 'authentication.Users'

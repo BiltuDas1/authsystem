@@ -4,14 +4,14 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from rest_framework.decorators import api_view
-from typing import cast, Any, Dict
+from typing import cast, Dict
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Users
+from .models import Users, UserManager
 
 # Create your views here.
 @api_view(['POST'])
 def login(request: Request):
-  data = cast(Dict[str, Any], request.data)
+  data = cast(Dict[str, str], request.data)
 
   email = data.get("email")
   password = data.get("password")
@@ -54,4 +54,37 @@ def login(request: Request):
 
 @api_view(['POST'])
 def register(request: Request):
-  return Response()
+  data = cast(Dict[str, str], request.data)
+
+  firstname = data.get("firstname")
+  lastname = data.get("lastname")
+  email = data.get("email")
+  password = data.get("password")
+
+  required_fields = ("firstname", "lastname", "email", "password")
+  for field in required_fields:
+    if not data.get(field):
+      return Response(
+        {
+          "result": False, 
+          "reason": f"{field} is required"
+        }, status=status.HTTP_400_BAD_REQUEST
+      )
+    
+  manager = cast(UserManager, Users.objects)
+  try:
+    manager.create_user(email=cast(str, email), password=password, firstname=firstname, lastname=lastname)
+
+    return Response(
+      {
+        "result": True,
+        "description": "user registered successfully"
+      }, status=status.HTTP_201_CREATED
+    )
+  except Exception:
+    return Response(
+      {
+        "result": False,
+        "reason": "email already exist or server error"
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
