@@ -4,6 +4,7 @@
 | ---------------- | ------------------------------------------------ |
 | `JWT_SECRET_KEY` | Contains the Private Key (EdDSA) for JWT Signing |
 | `JWT_PUBLIC_KEY` | For verifying the JWT keys (It also uses EdDSA)  |
+| `REDIS_URI`      | Redis Cache used for Rate Limit Purposes         |
 
 # Generating EdDSA Key
 

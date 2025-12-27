@@ -50,7 +50,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_ratelimit.middleware.RatelimitMiddleware"
 ]
+
+RATELIMIT_VIEW = 'authentication.ratelimit.ratelimit_error'
 
 ROOT_URLCONF = "authsystem.urls"
 
@@ -142,3 +145,21 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'authentication.Users'
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config.get("REDIS_URI"),  # Change this to your Redis URL
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "IGNORE_EXCEPTIONS": True,  # Prevents site crash if Redis goes down
+        }
+    }
+}

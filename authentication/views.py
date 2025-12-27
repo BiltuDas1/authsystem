@@ -1,14 +1,16 @@
-from . import models, serializers
 from django.contrib.auth import authenticate
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status
 from rest_framework.decorators import api_view
-from typing import cast, Dict
+from typing import cast, Dict, Any
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from .models import Users, UserManager
+from django_ratelimit.decorators import ratelimit
 
 # Create your views here.
+@ratelimit(key="ip", rate="5/m", block=True)
 @api_view(['POST'])
 def login(request: Request):
   data = cast(Dict[str, str], request.data)
@@ -52,6 +54,36 @@ def login(request: Request):
     }, status=status.HTTP_400_BAD_REQUEST
   )
 
+@api_view(['POST'])
+def logout(request: Request):
+  data = cast(Dict[str, str], request.data)
+  refresh_token = data.get("refresh_token")
+  if refresh_token is None:
+    return Response(
+      {
+        "result": False,
+        "reason": "no refresh_token provided"
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
+
+  try:
+    token = RefreshToken(cast(Any, refresh_token))
+    token.blacklist()
+    return Response(
+      {
+        "result": True,
+        "description": "logout successful"
+      }, status=status.HTTP_202_ACCEPTED
+    )
+  except TokenError:
+    return Response(
+      {
+        "result": False,
+        "reason": "invalid refresh_token"
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
+  
+@ratelimit(key="ip", rate="5/m", block=True)
 @api_view(['POST'])
 def register(request: Request):
   data = cast(Dict[str, str], request.data)
