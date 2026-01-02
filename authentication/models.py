@@ -32,10 +32,19 @@ class Users(AbstractBaseUser):
     default=Role.USER
   )
 
-  is_active = models.BooleanField(default=True)
+  is_active = models.BooleanField(default=False)
 
   # Custom Manager
   objects = UserManager()
 
   USERNAME_FIELD = 'email'
   REQUIRED_FIELDS = ['firstname', 'lastname']
+
+class EmailVerify(models.Model):
+  id = models.OneToOneField(
+    Users,
+    on_delete=models.CASCADE,
+    primary_key=True
+  )
+  token = models.CharField(max_length=64, unique=True)
+  created_at = models.DateTimeField(auto_now_add=True)
