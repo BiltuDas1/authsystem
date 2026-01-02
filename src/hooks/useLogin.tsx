@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
-import type { SuccessResponse, FailedResponse } from "../types/login.types";
+import type { LoginSuccessResponse, FailedResponse } from "../types/auth.types";
 import { toast } from "react-toastify";
 
 export function useLogin() {
@@ -15,7 +15,7 @@ export function useLogin() {
         password: password,
       })
       .then((response) => {
-        const data = response.data as SuccessResponse;
+        const data = response.data as LoginSuccessResponse;
         Cookies.set("id", data.user.id);
         Cookies.set("access_token", data.access_token);
         Cookies.set("refresh_token", data.refresh_token);

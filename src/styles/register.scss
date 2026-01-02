@@ -1,7 +1,7 @@
 @use "auth";
 
 body {
-  div#login-container {
+  div#register-container {
     @include auth.container;
     @include auth.authForm;
   }

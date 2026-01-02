@@ -1,0 +1,41 @@
+$bg-color: #f7f7f7;
+$button-color: #007bff;
+$button-text-color: white;
+$form-item-height: 2rem;
+$form-item-width: 15rem;
+
+@mixin container {
+  background-color: $bg-color;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 90vh;
+}
+
+@mixin authForm {
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+
+    input {
+      height: $form-item-height;
+      width: $form-item-width;
+      font-size: 0.9rem;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    button {
+      height: $form-item-height;
+      width: 100%;
+      background-color: $button-color;
+      color: $button-text-color;
+      border: none;
+      box-shadow: none;
+    }
+  }
+}

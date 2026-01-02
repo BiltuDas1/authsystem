@@ -1,7 +1,6 @@
 import { useState } from "react";
 import "../styles/login.scss";
 import { useLogin } from "../hooks/useLogin";
-import { Flip, ToastContainer } from "react-toastify";
 
 function Login() {
   const { login, isLoading } = useLogin();
@@ -46,21 +45,6 @@ function Login() {
           <button type="submit">Log in</button>
         )}
       </form>
-      <div>
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          transition={Flip}
-        />
-      </div>
     </div>
   );
 }

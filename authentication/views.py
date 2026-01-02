@@ -18,6 +18,14 @@ from datetime import timedelta
 
 EXPIRE = 60*60*24  # Email Verification allows till 24 hour
 
+# Check email if in correct format
+def is_valid_email(email: str) -> bool:
+  try:
+    validate_email(email)
+    return True
+  except ValidationError:
+    return False
+
 # Create your views here.
 @ratelimit(key="ip", rate="5/m", block=True)
 @api_view(['POST'])
@@ -32,6 +40,14 @@ def login(request: Request):
       {
         'result': False,
         'reason': 'Please provide both email and password'
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
+
+  if not is_valid_email(cast(str, email)):
+    return Response(
+      {
+        "result": False,
+        "reason": "invalid email address"
       }, status=status.HTTP_400_BAD_REQUEST
     )
   
@@ -111,11 +127,8 @@ def register(request: Request):
           "reason": f"{field} is required"
         }, status=status.HTTP_400_BAD_REQUEST
       )
-    
-  # Check email if in correct format
-  try:
-    validate_email(email)
-  except ValidationError:
+  
+  if not is_valid_email(cast(str, email)):
     return Response(
       {
         "result": False,

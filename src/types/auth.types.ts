@@ -1,4 +1,4 @@
-export interface SuccessResponse {
+export interface LoginSuccessResponse {
   result: true;
   access_token: string;
   refresh_token: string;
@@ -9,6 +9,11 @@ export interface SuccessResponse {
     email: string;
     role: string;
   };
+}
+
+export interface RegisterSuccessResponse {
+  result: true;
+  description: string;
 }
 
 export interface FailedResponse {
