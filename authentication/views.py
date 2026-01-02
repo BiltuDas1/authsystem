@@ -143,7 +143,7 @@ def register(request: Request):
     token = secrets.token_urlsafe(32)
     EmailVerify.objects.create(id=user, token=token)
 
-    body = template.load_email_verify(f"http://localhost:5173/verify-email?token={token}", EXPIRE)
+    body = template.load_email_verify(f"http://localhost:5173/auth/verify-email?token={token}", EXPIRE)
 
     if send_email.EMAIL is None:
       return Response(

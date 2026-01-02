@@ -1,11 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../styles/login.scss";
 import { useLogin } from "../hooks/useLogin";
+import { useEmailVerify } from "../hooks/useEmailVerify";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 function Login() {
   const { login, isLoading } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const source = searchParams.get("source");
+  const { email_verify } = useEmailVerify();
+  const navigate = useNavigate();
+
+  const isExecuted = useRef(false);
+
+  useEffect(() => {
+    if (source == "verify-email" && !isExecuted.current) {
+      email_verify(token);
+      isExecuted.current = true;
+    }
+    navigate("/auth/login");
+  }, [source, token]);
 
   return (
     <div id="login-container">
