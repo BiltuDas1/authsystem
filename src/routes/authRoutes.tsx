@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ResetPassword from "../pages/ResetPassword";
 import { Flip, ToastContainer } from "react-toastify";
 
 function AuthRoutes() {
@@ -17,6 +18,7 @@ function AuthRoutes() {
           path="verify-email"
           element={<Navigate to={`/auth/login?${params.toString()}`} replace />}
         />
+        <Route path="reset-password" element={<ResetPassword />} />
       </Routes>
       <div>
         <ToastContainer

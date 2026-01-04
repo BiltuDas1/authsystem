@@ -48,3 +48,12 @@ class EmailVerify(models.Model):
   )
   token = models.CharField(max_length=64, unique=True)
   created_at = models.DateTimeField(auto_now_add=True)
+
+class ResetEmailVerify(models.Model):
+  user = models.ForeignKey(
+    Users,
+    on_delete=models.CASCADE
+  )
+  token = models.CharField(max_length=64, unique=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+  is_active = models.BooleanField(default=True)

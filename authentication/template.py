@@ -46,3 +46,13 @@ def load_email_verify(url: str, validity: int) -> str:
   Loads the email template and replace the verification link
   """
   return verify_email.format(VERIFICATION_URL=url, TIME=seconds_to_readable(validity))
+
+
+with open(os.path.join(TEMPLATE_DIR, "reset_password.html")) as f:
+  reset_password = f.read()
+
+def load_reset_password(url: str, validity: int) -> str:
+  """
+  Loads the Reset password Email template and replace the verification link
+  """
+  return reset_password.format(RESET_URL=url, TIME=seconds_to_readable(validity))

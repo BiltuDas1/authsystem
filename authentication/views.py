@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view
 from typing import cast, Dict, Any
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from .models import Users, UserManager, EmailVerify
+from .models import Users, UserManager, EmailVerify, ResetEmailVerify
 from django_ratelimit.decorators import ratelimit
 from . import template, send_email
 import secrets
@@ -17,6 +17,7 @@ from datetime import timedelta
 
 
 EXPIRE = 60*60*24  # Email Verification allows till 24 hour
+RESET_PASSWORD_EXPIRE = 60*5
 
 # Check email if in correct format
 def is_valid_email(email: str) -> bool:
@@ -155,7 +156,7 @@ def register(request: Request):
     
     email_sent = send_email.EMAIL.send(
       to=cast(str, email),
-      subject="Verify your email",
+      subject="Verify Your Email",
       html_body=body
     )
 
@@ -211,7 +212,6 @@ def verify_email(request: Request):
 
     user.is_active = True
     user.save()
-    verification_token.delete()
     return Response(
       {
         "result": True,
@@ -223,5 +223,155 @@ def verify_email(request: Request):
       {
         "result": False,
         "reason": "invalid token or the email doesn't exist"
+      }, status=status.HTTP_404_NOT_FOUND
+    )
+
+@ratelimit(key="ip", rate="2/m", block=True)
+@api_view(["POST"])
+def reset_password(request: Request):
+  data = cast(Dict[str, str], request.data)
+  email = data.get("email")
+
+  if email is None:
+    return Response(
+      {
+        "result": False,
+        "reason": "email is required"
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
+  
+  if not is_valid_email(cast(str, email)):
+    return Response(
+      {
+        "result": False,
+        "reason": "invalid email address"
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
+  
+  try:
+    user = Users.objects.get(email=email)
+    token = secrets.token_urlsafe(32)
+    ResetEmailVerify.objects.filter(user=user).update(is_active=False)  # Disable all the previous password reset token
+    ResetEmailVerify.objects.create(user=user, token=token)
+
+    body = template.load_reset_password(f"http://localhost:5173/auth/reset-password?token={token}", RESET_PASSWORD_EXPIRE)
+
+    if send_email.EMAIL is None:
+      return Response(
+        {
+          "result": False,
+          "reason": "email server is not ready"
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+      )
+    
+    email_sent = send_email.EMAIL.send(
+      to=cast(str, email),
+      subject="Reset Your Password",
+      html_body=body
+    )
+
+    if not email_sent:
+      return Response(
+        {
+          "result": False,
+          "reason": "unable to send email"
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+      )
+
+    return Response(
+      {
+        "result": True,
+        "description": "email send successfully"
+      }, status=status.HTTP_200_OK
+    )
+  except Users.DoesNotExist:
+    return Response(
+      {
+        "result": False,
+        "reason": "email not found"
+      }, status=status.HTTP_404_NOT_FOUND
+    )
+
+@ratelimit(key="ip", rate="10/m", block=True)
+@api_view(["GET"])
+def check_reset_token(request: Request):
+  token = request.query_params.get("token")
+
+  if token is None:
+    return Response(
+      {
+        "result": False,
+        "reason": "token is required"
+      }, status=status.HTTP_400_BAD_REQUEST
+    )
+
+  try:
+    token_obj = ResetEmailVerify.objects.get(token=token, is_active=True)
+    if token_obj.created_at < (timezone.now() - timedelta(seconds=RESET_PASSWORD_EXPIRE)):
+      return Response(
+        {
+          "result": False,
+          "reason": "token is invalid"
+        }, status=status.HTTP_404_NOT_FOUND
+      )
+    return Response(
+      {
+        "result": True,
+        "description": "token is valid"
+      }, status=status.HTTP_200_OK
+    )
+  except ResetEmailVerify.DoesNotExist:
+    return Response(
+      {
+        "result": False,
+        "reason": "token is invalid"
+      }, status=status.HTTP_404_NOT_FOUND
+    )
+
+@ratelimit(key="ip", rate="2/m", block=True)
+@api_view(["POST"])
+def change_password(request: Request):
+  data = cast(Dict[str, str], request.data)
+  token = data.get("token")
+  password = data.get("password")
+
+  required_fields = ("token", "password")
+  for field in required_fields:
+    if not data.get(field):
+      return Response(
+        {
+          "result": False,
+          "reason": f"{field} is required"
+        }, status=status.HTTP_400_BAD_REQUEST
+      )
+
+  try:
+    token_obj = ResetEmailVerify.objects.get(token=token, is_active=True)
+    if token_obj.created_at < (timezone.now() - timedelta(seconds=RESET_PASSWORD_EXPIRE)):
+      return Response(
+        {
+          "result": False,
+          "reason": "token is invalid"
+        }, status=status.HTTP_404_NOT_FOUND
+      )
+
+    user = token_obj.user
+    user.set_password(password)
+    user.save()
+    token_obj.is_active = False
+    token_obj.save()
+
+    return Response(
+      {
+        "result": True,
+        "description": "Password updated"
+      }, status=status.HTTP_200_OK
+    )
+
+  except ResetEmailVerify.DoesNotExist:
+    return Response(
+      {
+        "result": False,
+        "reason": "token is invalid"
       }, status=status.HTTP_404_NOT_FOUND
     )

@@ -63,6 +63,8 @@ function Login() {
           <button type="submit">Log in</button>
         )}
       </form>
+      <br />
+      <a href="reset-password">Forget Password?</a>
     </div>
   );
 }
